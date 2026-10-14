@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 export interface Game {
     id: number;
@@ -16,5 +16,13 @@ export class GamesService {
 
     findAll(): Game[] {
         return this.games;
+    }
+    findOne(id: number): Game {
+        const game = this.games.find((game) => game.id === id);
+
+        if (!game) {
+            throw new NotFoundException(`Jogo do ID ${id} não encontrado `);
+        }
+        return game;
     }
 }

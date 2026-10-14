@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GamesService } from './games.service.js';
+import { NotFoundException } from '@nestjs/common';
 
 describe('GamesService', () => {
   let service: GamesService;
@@ -18,5 +19,9 @@ describe('GamesService', () => {
       { id: 2, name: 'Crystal Quest', active: true },
       { id: 3, name: 'Ocean Legends', active: false },
     ]);
+  });
+
+  it('deve retornar NotFoundException quando o jogo não for encontrado', () => {
+    expect(() => service.findOne(999)).toThrow(NotFoundException);
   });
 });
