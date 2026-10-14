@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Compilação
+dist/
+
+# Testes
+coverage/
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Cache de compilação do TypeScript
+*.tsbuildinfo
