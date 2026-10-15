@@ -52,4 +52,9 @@ export class GamesService {
 
         return game;
     }
+    remove(id: number) : void {
+        const game = this.findOne(id);
+        const index = this.games.indexOf(game);
+        this.games.splice(index, 1);
+    }
 }

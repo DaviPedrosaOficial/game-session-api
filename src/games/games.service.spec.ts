@@ -70,4 +70,18 @@ describe('GamesService', () => {
     expect(() => service.update(999, { active: false }))
       .toThrow(NotFoundException);
   });
+
+  it('deve remover apenas o jogo informado', () => {
+    service.remove(2);
+
+    expect(() => service.findOne(2)).toThrow(NotFoundException);
+
+    expect(service.findAll().map((game) => game.id)).toEqual([1, 3]);
+  });
+
+  it('deve lançar NotFoundException ao remover um jogo inexistente', () => {
+    expect(() => service.remove(999)).toThrow(NotFoundException);
+
+    expect(service.findAll()).toHaveLength(3);
+  });
 });

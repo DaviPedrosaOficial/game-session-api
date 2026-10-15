@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { GamesService } from './games.service.js';
 import { CreateGameDto } from './dto/create-game.dto.js';
 import { UpdateGameDto } from './dto/update-game.dto.js';
@@ -28,5 +28,11 @@ export class GamesController {
         @Body() updateGameDto: UpdateGameDto
     ) {
         return this.gamesService.update(id, updateGameDto);
+    }
+
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    remove(@Param('id', ParseIntPipe) id: number): void {
+        this.gamesService.remove(id);
     }
 }

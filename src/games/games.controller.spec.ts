@@ -12,6 +12,7 @@ describe('GamesController', () => {
     ],
     create: vi.fn(),
     update: vi.fn(),
+    remove: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -70,5 +71,11 @@ describe('GamesController', () => {
 
     expect(gamesServiceMock.update).toHaveBeenCalledWith(id, dados);
     expect(resultado).toEqual(jogoAtualizado);
+  });
+  it('deve encaminhar o ID de exclusão ao service', () => {
+    const resultado = controller.remove(2);
+
+    expect(gamesServiceMock.remove).toHaveBeenCalledWith(2);
+    expect(resultado).toBeUndefined();
   });
 });
