@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GamesController } from './games.controller.js';
 import { GamesService } from './games.service.js';
+import { vi } from 'vitest';
 
 describe('GamesController', () => {
   let controller: GamesController;
@@ -9,6 +10,7 @@ describe('GamesController', () => {
     findAll: () => [
       { id: 1, name: 'Jungle Adventure', active: true },
     ],
+    create: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -30,4 +32,25 @@ describe('GamesController', () => {
       { id: 1, name: 'Jungle Adventure', active: true },
     ]);
   });
+
+  it('deve encaminhar os dados de cadastro ao service e retornar o jogo', () => {
+    
+    const dados = {
+      name: 'Twisted Island',
+      active: false,
+    };
+
+    const jogoCriado = {
+      id: 4,
+      ...dados,
+    };
+
+    gamesServiceMock.create.mockReturnValueOnce(jogoCriado);
+
+    const resultado = controller.create(dados);
+
+    expect(gamesServiceMock.create).toHaveBeenCalledWith(dados);
+    expect(resultado).toEqual(jogoCriado);
+  });
+  
 });

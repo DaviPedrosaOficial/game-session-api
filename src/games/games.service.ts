@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { CreateGameDto } from './dto/create-game.dto.js';
 
 export interface Game {
     id: number;
@@ -24,5 +25,17 @@ export class GamesService {
             throw new NotFoundException(`Jogo do ID ${id} não encontrado `);
         }
         return game;
+    }
+    create(createGameDto: CreateGameDto): Game {
+        const nextId = Math.max(0, ...this.games.map((game) => game.id)) + 1;
+
+        const newGame: Game = {
+            id: nextId,
+            name: createGameDto.name,
+            active: createGameDto.active,
+        };
+
+        this.games.push(newGame);
+        return newGame;
     }
 }

@@ -24,4 +24,21 @@ describe('GamesService', () => {
   it('deve retornar NotFoundException quando o jogo não for encontrado', () => {
     expect(() => service.findOne(999)).toThrow(NotFoundException);
   });
+
+  it('deve criar um jogo inativo e permitir buscá-lo pelo ID', () => {
+    const dados = {
+      name: 'Twisted Island',
+      active: false,
+    };
+
+    const jogoCriado = service.create(dados);
+
+    expect(jogoCriado).toEqual({
+      id: 4,
+      name: 'Twisted Island',
+      active: false,
+    });
+
+    expect(service.findOne(jogoCriado.id)).toEqual(jogoCriado);
+  })
 });
