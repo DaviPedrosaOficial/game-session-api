@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { GamesService } from './games.service.js';
 import { CreateGameDto } from './dto/create-game.dto.js';
+import { UpdateGameDto } from './dto/update-game.dto.js';
 
 @Controller('games')
 export class GamesController {
@@ -19,5 +20,13 @@ export class GamesController {
     @Post()
     create(@Body() createGameDto: CreateGameDto) {
         return this.gamesService.create(createGameDto);
+    }
+
+    @Patch(':id')
+    update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updateGameDto: UpdateGameDto
+    ) {
+        return this.gamesService.update(id, updateGameDto);
     }
 }

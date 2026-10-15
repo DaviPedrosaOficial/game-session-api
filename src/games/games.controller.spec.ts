@@ -11,6 +11,7 @@ describe('GamesController', () => {
       { id: 1, name: 'Jungle Adventure', active: true },
     ],
     create: vi.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -53,4 +54,21 @@ describe('GamesController', () => {
     expect(resultado).toEqual(jogoCriado);
   });
   
+  it('deve encaminhar o ID e os dados de atualização ao service', () => {
+    const id = 1;
+    const dados = { active: false };
+
+    const jogoAtualizado = {
+      id,
+      name: 'Jungle Adventure',
+      active: false,
+    };
+
+    gamesServiceMock.update.mockReturnValueOnce(jogoAtualizado);
+
+    const resultado = controller.update(id, dados);
+
+    expect(gamesServiceMock.update).toHaveBeenCalledWith(id, dados);
+    expect(resultado).toEqual(jogoAtualizado);
+  });
 });

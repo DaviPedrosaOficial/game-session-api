@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { CreateGameDto } from './dto/create-game.dto.js';
+import type { UpdateGameDto } from './dto/update-game.dto.js';
 
 export interface Game {
     id: number;
@@ -37,5 +38,18 @@ export class GamesService {
 
         this.games.push(newGame);
         return newGame;
+    }
+    update(id: number, updateGameDto: UpdateGameDto): Game {
+        const game = this.findOne(id);
+
+        if (updateGameDto.name != null && updateGameDto.name != undefined) {
+            game.name = updateGameDto.name;
+        }
+
+        if (updateGameDto.active != null && updateGameDto.active != undefined) {
+            game.active = updateGameDto.active;
+        }
+
+        return game;
     }
 }

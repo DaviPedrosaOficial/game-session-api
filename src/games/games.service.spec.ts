@@ -40,5 +40,34 @@ describe('GamesService', () => {
     });
 
     expect(service.findOne(jogoCriado.id)).toEqual(jogoCriado);
-  })
+  });
+
+  it('deve atualizar o status para false e preservar o nome', () => {
+    const resultado = service.update(1, { active: false });
+
+    expect(resultado).toEqual({
+      id: 1,
+      name: 'Jungle Adventure',
+      active: false,
+    });
+
+    expect(service.findOne(1)).toEqual(resultado);
+});
+
+  it('deve atualizar o nome e preservar o status', () => {
+    const resultado = service.update(3, {
+      name: 'Ocean Legends Updated',
+    });
+
+    expect(resultado).toEqual({
+      id: 3,
+      name: 'Ocean Legends Updated',
+      active: false,
+    });
+  });
+
+  it('deve lançar NotFoundException ao atualizar um jogo inexistente', () => {
+    expect(() => service.update(999, { active: false }))
+      .toThrow(NotFoundException);
+  });
 });
