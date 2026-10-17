@@ -1,124 +1,253 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# GameSession API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para um domínio de jogos, desenvolvida com **NestJS, TypeScript, MikroORM e PostgreSQL**, com banco executado em Docker e testes unitários com Vitest.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+O projeto está em desenvolvimento. A etapa atual implementa o gerenciamento de jogos com persistência no PostgreSQL. Jogadores, sessões, pontuações e ranking fazem parte da evolução planejada.
 
-## Description
+## Por que este projeto existe?
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+A GameSession API foi criada para aprofundar meus conhecimentos em desenvolvimento backend e colocar em prática conceitos importantes para minha preparação profissional.
 
-## Project setup
+Após experiências com Node.js e Express em projetos pessoais, o objetivo é avançar no uso de TypeScript e NestJS, entendendo como organizar uma aplicação com módulos, injeção de dependências, validação, acesso a banco de dados e testes automatizados.
 
-```bash
-$ npm install
+O domínio de jogos oferece um cenário para evoluir de operações básicas de cadastro até regras envolvendo jogadores e sessões. O desenvolvimento acontece de forma incremental: implementar uma funcionalidade, compreender suas decisões, verificar seu comportamento e registrar a evolução no Git.
+
+Além de compor meu portfólio, o projeto serve como laboratório de aprendizado. A intenção é conseguir explicar o funcionamento do código, justificar as escolhas técnicas e desenvolver uma base para funcionalidades mais complexas.
+
+## Funcionalidades implementadas
+
+- Cadastro, listagem, busca por ID, atualização parcial e exclusão de jogos.
+- Validação de entrada com DTOs e `ValidationPipe` global.
+- Rejeição de propriedades não previstas nos DTOs.
+- Tratamento de IDs inválidos e registros não encontrados.
+- Persistência com PostgreSQL e MikroORM.
+- Migration inicial para criação da tabela `games`.
+- PostgreSQL executado com Docker Compose e volume persistente.
+- Configuração por variáveis de ambiente.
+- Testes unitários de controllers e service, com dependências simuladas.
+
+## Tecnologias
+
+| Tecnologia | Papel no projeto |
+| --- | --- |
+| TypeScript | Tipagem estática do código |
+| NestJS 12 | Organização da API em módulos, controllers e providers |
+| MikroORM 7 | Mapeamento de entidades e persistência |
+| PostgreSQL 17 | Banco de dados relacional |
+| Docker Compose | Execução do banco e gerenciamento do volume |
+| class-validator / class-transformer | Validação e transformação dos dados de entrada |
+| dotenv | Carregamento das variáveis de ambiente |
+| Vitest | Execução dos testes automatizados |
+
+O projeto usa **ES Modules (ESM)**. Os imports locais utilizam a extensão `.js`, correspondente aos arquivos gerados pela compilação, mesmo quando o código-fonte está em `.ts`.
+
+## Organização
+
+```text
+src/
+├── games/
+│   ├── dto/
+│   │   ├── create-game.dto.ts
+│   │   └── update-game.dto.ts
+│   ├── entities/
+│   │   └── game.entity.ts
+│   ├── games.controller.ts
+│   ├── games.controller.spec.ts
+│   ├── games.module.ts
+│   ├── games.service.ts
+│   └── games.service.spec.ts
+├── migrations/
+├── app.module.ts
+├── main.ts
+└── mikro-orm.config.ts
 ```
 
-## Compile and run the project
+O **controller** recebe as requisições HTTP e encaminha os dados ao **service**. O service coordena as operações usando o repositório e o EntityManager do MikroORM. A entidade `Game` define o mapeamento para a tabela, enquanto os DTOs descrevem e validam os dados recebidos pela API.
+
+## Como executar
+
+### Pré-requisitos
+
+- Node.js 24 e npm — ambiente utilizado no desenvolvimento.
+- Git.
+- Docker com Docker Compose disponível e mecanismo em execução. No Windows, pode ser utilizado o Docker Desktop com containers Linux.
+
+O PostgreSQL será executado no container; não é necessário instalá-lo diretamente no computador.
+
+### 1. Clonar e instalar
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/DaviPedrosaOficial/game-session-api.git
+cd game-session-api
+npm ci
 ```
 
-## Run tests
+### 2. Configurar o ambiente
+
+Copie `.env.example` para `.env`. No PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+No Linux ou macOS:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Edite os valores conforme seu ambiente:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Variável | Finalidade |
+| --- | --- |
+| `PORT` | Porta HTTP da API; padrão no código: `3000` |
+| `DB_HOST` | Endereço do banco acessado pela API; localmente: `127.0.0.1` |
+| `DB_PORT` | Porta publicada para o banco no computador; exemplo: `5432` |
+| `POSTGRES_USER` | Usuário do banco |
+| `POSTGRES_PASSWORD` | Senha do banco; substitua o valor de exemplo |
+| `POSTGRES_DB` | Nome do banco |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+O `.env` é ignorado pelo Git; o `.env.example` documenta as variáveis necessárias. API, CLI do MikroORM e Compose usam esses valores. As variáveis obrigatórias de conexão e a porta do banco são verificadas pela configuração do ORM.
+
+Em um banco novo, as variáveis `POSTGRES_*` definem as credenciais e o banco inicial. Em um volume já inicializado, alterar essas variáveis não altera automaticamente usuários, senhas ou bancos existentes. Nesse caso, mantenha os valores usados na criação ou faça a alteração diretamente no PostgreSQL.
+
+### 3. Iniciar o PostgreSQL
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d
+docker compose ps
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+O banco fica disponível apenas no computador local, pela porta configurada. A API continua sendo executada pelo Node fora do container.
 
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
+### 4. Aplicar as migrations
 
 ```bash
-$ npm install @nestjs/observe
+npx mikro-orm migration:up --config ./src/mikro-orm.config.ts
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+Esse comando cria as estruturas pendentes e registra as migrations executadas. Não é necessário gerar uma nova migration para executar o projeto pela primeira vez: utilize a que já está versionada.
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+### 5. Iniciar a API
 
-## Resources
+```bash
+npm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Com a porta padrão, a API estará disponível em `http://localhost:3000`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+A tabela começa vazia em uma instalação nova. Os jogos são cadastrados pela API; os três exemplos usados na fase inicial em memória não são inseridos automaticamente no banco.
 
-## Support
+## Endpoints de jogos
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+| Método | Rota | Operação | Sucesso |
+| --- | --- | --- | --- |
+| GET | `/games` | Listar jogos por ID crescente | `200` |
+| GET | `/games/:id` | Buscar um jogo | `200` |
+| POST | `/games` | Cadastrar um jogo | `201` |
+| PATCH | `/games/:id` | Atualizar campos de um jogo | `200` |
+| DELETE | `/games/:id` | Excluir um jogo | `204`, sem corpo |
 
-## Stay in touch
+### Cadastrar
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Envie `POST /games` com `Content-Type: application/json`:
 
-## License
+```json
+{
+  "name": "Jungle Adventure",
+  "active": true
+}
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Exemplo de resposta:
+
+```json
+{
+  "id": 1,
+  "name": "Jungle Adventure",
+  "active": true
+}
+```
+
+O ID é gerado pelo PostgreSQL e pode variar. O cliente não deve enviá-lo no cadastro. `name` e `active` são obrigatórios; `active` deve ser um booleano, sem aspas.
+
+### Atualizar parcialmente
+
+Envie `PATCH /games/1`:
+
+```json
+{
+  "active": false
+}
+```
+
+O nome é preservado. Também é possível enviar apenas `name` ou os dois campos. No comportamento atual, campos ausentes ou enviados como `null` são ignorados. Um corpo vazio mantém o registro sem alterações.
+
+### Erros esperados
+
+- **400 Bad Request:** ID não inteiro, dados inválidos ou propriedades extras.
+- **404 Not Found:** jogo não encontrado em busca, atualização ou exclusão.
+
+Atualmente, a validação de nome vazio não rejeita textos compostos apenas por espaços. O limite de 255 caracteres da coluna ainda não possui validação equivalente nos DTOs; esses ajustes fazem parte das melhorias de validação.
+
+## Testes e compilação
+
+```bash
+npm test
+npm run build
+```
+
+Para acompanhar os testes durante alterações:
+
+```bash
+npm run test:watch
+```
+
+A última verificação desta etapa teve **15 testes unitários aprovados**: 9 do service de jogos, 5 do controller de jogos e 1 do controller principal.
+
+Os testes de jogos simulam o repositório, o EntityManager e o service conforme a camada testada. Não exigem PostgreSQL em execução. Verificam consultas, encaminhamento de parâmetros, persistência solicitada pelo service, atualização parcial, exclusão e tratamento de registros inexistentes.
+
+Esses testes não substituem testes de integração HTTP ou de banco. O fluxo real de cadastro, consulta, atualização e exclusão foi verificado manualmente com Insomnia e consultas SQL, incluindo a permanência de um cadastro após reiniciar a API.
+
+## Comandos de banco e migrations
+
+Execute os comandos a partir da raiz do projeto:
+
+```bash
+# Verificar configuração e conexão
+npx mikro-orm debug --config ./src/mikro-orm.config.ts
+
+# Gerar uma migration após alterar entidades
+npx mikro-orm migration:create --config ./src/mikro-orm.config.ts
+
+# Aplicar migrations pendentes
+npx mikro-orm migration:up --config ./src/mikro-orm.config.ts
+
+# Parar o banco
+docker compose stop
+
+# Iniciar novamente
+docker compose up -d
+```
+
+Revise o SQL gerado antes de aplicar uma nova migration. Os arquivos de migration e o snapshot de schema devem acompanhar a evolução do código no Git.
+
+Os dados ficam no volume `postgres_data`. Parar ou recriar o container preserva esse volume. O comando `docker compose down -v` remove os volumes do projeto e apaga os dados armazenados neles.
+
+## Próximas etapas
+
+- [ ] Documentação interativa dos endpoints com Swagger/OpenAPI.
+- [ ] Melhorias na validação de nomes e limites de tamanho.
+- [ ] Testes de integração HTTP e persistência automatizados.
+- [ ] Cadastro e gerenciamento de jogadores.
+- [ ] Sessões de jogo relacionadas a jogos e jogadores.
+- [ ] Registro de pontuações e consultas de ranking.
+- [ ] Exploração de eventos assíncronos e comunicação em tempo real.
+- [ ] Evolução da organização do domínio conforme a complexidade das regras.
+
+## Autor
+
+Desenvolvido por **Davi da Silva Pedrosa**, estudante de Ciência da Computação, como projeto de aprendizado e portfólio backend.
+
+[Perfil no GitHub](https://github.com/DaviPedrosaOficial)
+
