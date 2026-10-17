@@ -1,61 +1,122 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { GamesService } from './games.service.js';
+import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { getRepositoryToken } from '@mikro-orm/nestjs';
+import { vi } from 'vitest';
+import { GamesService } from './games.service.js';
+import { Game } from './entities/game.entity.js';
 
 describe('GamesService', () => {
   let service: GamesService;
 
+  const entityManagerMock = {
+    persist: vi.fn(),
+    flush: vi.fn(),
+    remove: vi.fn(),
+  };
+
+  const repositoryMock = {
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    getEntityManager: vi.fn(),
+  };
+
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GamesService],
+    vi.resetAllMocks();
+
+    repositoryMock.getEntityManager.mockReturnValue(entityManagerMock);
+    entityManagerMock.flush.mockResolvedValue(undefined);
+
+    const module = await Test.createTestingModule({
+      providers: [
+        GamesService,
+        {
+          provide: getRepositoryToken(Game),
+          useValue: repositoryMock,
+        },
+      ],
     }).compile();
 
     service = module.get<GamesService>(GamesService);
   });
 
-  it('deve listar todos os jogos, incluindo os inativos', () => {
-    expect(service.findAll()).toEqual([
+  it('deve listar jogos ativos e inativos ordenados por ID', async () => {
+    const jogos = [
       { id: 1, name: 'Jungle Adventure', active: true },
-      { id: 2, name: 'Crystal Quest', active: true },
       { id: 3, name: 'Ocean Legends', active: false },
-    ]);
+    ];
+
+    repositoryMock.findAll.mockResolvedValueOnce(jogos);
+
+    const resultado = await service.findAll();
+
+    expect(resultado).toEqual(jogos);
+    expect(repositoryMock.findAll).toHaveBeenCalledWith({
+      orderBy: { id: 'asc' },
+    });
   });
 
-  it('deve retornar NotFoundException quando o jogo não for encontrado', () => {
-    expect(() => service.findOne(999)).toThrow(NotFoundException);
+  it('deve buscar um jogo pelo ID', async () => {
+    const jogo = {
+      id: 1,
+      name: 'Jungle Adventure',
+      active: true,
+    };
+
+    repositoryMock.findOne.mockResolvedValueOnce(jogo);
+
+    expect(await service.findOne(1)).toEqual(jogo);
+    expect(repositoryMock.findOne).toHaveBeenCalledWith({ id: 1 });
   });
 
-  it('deve criar um jogo inativo e permitir buscá-lo pelo ID', () => {
+  it('deve lançar NotFoundException quando o jogo não existir', async () => {
+    repositoryMock.findOne.mockResolvedValueOnce(null);
+
+    await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+  });
+
+  it('deve persistir um novo jogo inativo e aguardar a gravação', async () => {
     const dados = {
       name: 'Twisted Island',
       active: false,
     };
 
-    const jogoCriado = service.create(dados);
+    const resultado = await service.create(dados);
 
-    expect(jogoCriado).toEqual({
-      id: 4,
-      name: 'Twisted Island',
-      active: false,
-    });
-
-    expect(service.findOne(jogoCriado.id)).toEqual(jogoCriado);
+    expect(resultado).toBeInstanceOf(Game);
+    expect(resultado).toMatchObject(dados);
+    expect(entityManagerMock.persist).toHaveBeenCalledWith(resultado);
+    expect(entityManagerMock.flush).toHaveBeenCalledTimes(1);
   });
 
-  it('deve atualizar o status para false e preservar o nome', () => {
-    const resultado = service.update(1, { active: false });
+  it('deve atualizar o status para false e preservar o nome', async () => {
+    const jogo = {
+      id: 1,
+      name: 'Jungle Adventure',
+      active: true,
+    };
+
+    repositoryMock.findOne.mockResolvedValueOnce(jogo);
+
+    const resultado = await service.update(1, { active: false });
 
     expect(resultado).toEqual({
       id: 1,
       name: 'Jungle Adventure',
       active: false,
     });
+    expect(entityManagerMock.flush).toHaveBeenCalledTimes(1);
+  });
 
-    expect(service.findOne(1)).toEqual(resultado);
-});
+  it('deve atualizar o nome e preservar o status', async () => {
+    const jogo = {
+      id: 3,
+      name: 'Ocean Legends',
+      active: false,
+    };
 
-  it('deve atualizar o nome e preservar o status', () => {
-    const resultado = service.update(3, {
+    repositoryMock.findOne.mockResolvedValueOnce(jogo);
+
+    const resultado = await service.update(3, {
       name: 'Ocean Legends Updated',
     });
 
@@ -64,24 +125,41 @@ describe('GamesService', () => {
       name: 'Ocean Legends Updated',
       active: false,
     });
+    expect(entityManagerMock.flush).toHaveBeenCalledTimes(1);
   });
 
-  it('deve lançar NotFoundException ao atualizar um jogo inexistente', () => {
-    expect(() => service.update(999, { active: false }))
-      .toThrow(NotFoundException);
+  it('não deve gravar ao tentar atualizar um jogo inexistente', async () => {
+    repositoryMock.findOne.mockResolvedValueOnce(null);
+
+    await expect(
+      service.update(999, { active: false }),
+    ).rejects.toThrow(NotFoundException);
+
+    expect(entityManagerMock.flush).not.toHaveBeenCalled();
   });
 
-  it('deve remover apenas o jogo informado', () => {
-    service.remove(2);
+  it('deve marcar o jogo encontrado para exclusão e gravar', async () => {
+    const jogo = {
+      id: 2,
+      name: 'Crystal Quest',
+      active: true,
+    };
 
-    expect(() => service.findOne(2)).toThrow(NotFoundException);
+    repositoryMock.findOne.mockResolvedValueOnce(jogo);
 
-    expect(service.findAll().map((game) => game.id)).toEqual([1, 3]);
+    await service.remove(2);
+
+    expect(repositoryMock.findOne).toHaveBeenCalledWith({ id: 2 });
+    expect(entityManagerMock.remove).toHaveBeenCalledWith(jogo);
+    expect(entityManagerMock.flush).toHaveBeenCalledTimes(1);
   });
 
-  it('deve lançar NotFoundException ao remover um jogo inexistente', () => {
-    expect(() => service.remove(999)).toThrow(NotFoundException);
+  it('não deve excluir ao receber um ID inexistente', async () => {
+    repositoryMock.findOne.mockResolvedValueOnce(null);
 
-    expect(service.findAll()).toHaveLength(3);
+    await expect(service.remove(999)).rejects.toThrow(NotFoundException);
+
+    expect(entityManagerMock.remove).not.toHaveBeenCalled();
+    expect(entityManagerMock.flush).not.toHaveBeenCalled();
   });
 });

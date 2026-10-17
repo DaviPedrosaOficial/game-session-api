@@ -32,7 +32,7 @@ export class GamesController {
 
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
-    remove(@Param('id', ParseIntPipe) id: number): void {
-        this.gamesService.remove(id);
+    remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+        return this.gamesService.remove(id);
     }
 }

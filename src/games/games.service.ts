@@ -1,46 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
+import { Game } from './entities/game.entity.js';
 import type { CreateGameDto } from './dto/create-game.dto.js';
 import type { UpdateGameDto } from './dto/update-game.dto.js';
 
-export interface Game {
-    id: number;
-    name: string;
-    active: boolean;
-}
-
 @Injectable()
 export class GamesService {
-    private readonly games: Game[] = [
-        { id: 1, name: 'Jungle Adventure', active: true },
-        { id: 2, name: 'Crystal Quest', active: true },
-        { id: 3, name: 'Ocean Legends', active: false },
-    ];
+    constructor(
+        @InjectRepository(Game)
+        private readonly gamesRepository: EntityRepository<Game> 
+    ) {}
 
-    findAll(): Game[] {
-        return this.games;
+    async findAll(): Promise<Game[]> {
+        return this.gamesRepository.findAll({
+            orderBy: { id: 'asc'},
+        });
     }
-    findOne(id: number): Game {
-        const game = this.games.find((game) => game.id === id);
+
+    async findOne(id: number): Promise<Game> {
+        const game = await this.gamesRepository.findOne({ id });
 
         if (!game) {
             throw new NotFoundException(`Jogo do ID ${id} não encontrado `);
         }
         return game;
     }
-    create(createGameDto: CreateGameDto): Game {
-        const nextId = Math.max(0, ...this.games.map((game) => game.id)) + 1;
+    async create(createGameDto: CreateGameDto): Promise<Game> {
+        const game = new Game();
+        game.name = createGameDto.name;
+        game.active = createGameDto.active;
 
-        const newGame: Game = {
-            id: nextId,
-            name: createGameDto.name,
-            active: createGameDto.active,
-        };
+        const em = this.gamesRepository.getEntityManager();
 
-        this.games.push(newGame);
-        return newGame;
+        em.persist(game);
+        await em.flush();
+
+        return game;
     }
-    update(id: number, updateGameDto: UpdateGameDto): Game {
-        const game = this.findOne(id);
+    async update(id: number, updateGameDto: UpdateGameDto): Promise<Game> {
+        const game = await this.findOne(id);
 
         if (updateGameDto.name != null && updateGameDto.name != undefined) {
             game.name = updateGameDto.name;
@@ -50,11 +49,16 @@ export class GamesService {
             game.active = updateGameDto.active;
         }
 
+        await this.gamesRepository.getEntityManager().flush();
+
         return game;
     }
-    remove(id: number) : void {
-        const game = this.findOne(id);
-        const index = this.games.indexOf(game);
-        this.games.splice(index, 1);
+    async remove(id: number): Promise<void> {
+        const game = await this.findOne(id);
+
+        const em = this.gamesRepository.getEntityManager();
+
+        em.remove(game);
+        await em.flush();
     }
 }
