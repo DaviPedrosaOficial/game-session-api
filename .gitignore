@@ -21,3 +21,7 @@ Thumbs.db
 
 # Cache de compilação do TypeScript
 *.tsbuildinfo
+
+.env
+.env.*
+!.env.example
